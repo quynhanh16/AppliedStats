@@ -1,8 +1,6 @@
 ---
 title: "EDA_Lab2 Notebook"
-output:
-  html_document:
-    df_print: paged
+output: rmarkdown::github_document
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
