@@ -1,2 +1,2 @@
-# Math345
-R activities for Math 345: Applied Statistical Methods
+# Applied Statistical Methods
+R activities for Applied Statistical Methods class. 
