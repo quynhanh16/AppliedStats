@@ -11,10 +11,10 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 
 ```{r}
 temp=c(3.5, 4.8, 2.5, 6.3, 4.7, 2.7, 2.6, 5.5, 3.2,5.7)
-t.test(temp, mu = 3)
+t.test(temp, mu = 3, alternative = "greater")
 ```
 
--   Step 1: $H_0: \mu=3$ vs $H_a: \mu \neq 3$
+-   Step 1: $H_0: \mu=3$ vs $H_a: \mu > 3$
 
 -   Step 2: $t=2.5626$ and $DF=9$
 
@@ -30,7 +30,7 @@ t.test(temp, mu = 3)
 New_Prog=c(21, 11, 16,5,20, 7, 16) 
 Reg_Prog=c(15, 8, 19, 4, 16, 9, 11) 
 
-t.test(New_Prog, Reg_Prog, paired=T,conf.level = 0.9)
+t.test(New_Prog, Reg_Prog, paired=T,conf.level = 0.9, alternative ="greater")
 ```
 
 -   Step 1: $H_0: d=0$ vs $H_a: d > 0$
@@ -41,7 +41,7 @@ t.test(New_Prog, Reg_Prog, paired=T,conf.level = 0.9)
 
 -   Step 4: $p=0.08875<\alpha=0.10$
 
-**Conclusion:** We found significant statistical evidence at the level of $\alpha =0.10$ that the mean score of the new program is higher than that of the regualr program.
+**Conclusion:** We found significant statistical evidence at the level of $\alpha =0.10$ that the mean score of the new program is higher than that of the regular program.
 
 # Two sample t test
 

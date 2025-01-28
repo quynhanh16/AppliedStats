@@ -11,22 +11,22 @@ or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*.
 
 ``` r
 temp=c(3.5, 4.8, 2.5, 6.3, 4.7, 2.7, 2.6, 5.5, 3.2,5.7)
-t.test(temp, mu = 3)
+t.test(temp, mu = 3, alternative = "greater")
 ```
 
     ## 
     ##  One Sample t-test
     ## 
     ## data:  temp
-    ## t = 2.5626, df = 9, p-value = 0.03056
-    ## alternative hypothesis: true mean is not equal to 3
+    ## t = 2.5626, df = 9, p-value = 0.01528
+    ## alternative hypothesis: true mean is greater than 3
     ## 95 percent confidence interval:
-    ##  3.134826 5.165174
+    ##  3.327365      Inf
     ## sample estimates:
     ## mean of x 
     ##      4.15
 
-- Step 1: $H_0: \mu=3$ vs $H_a: \mu \neq 3$
+- Step 1: $H_0: \mu=3$ vs $H_a: \mu > 3$
 
 - Step 2: $t=2.5626$ and $DF=9$
 
@@ -44,17 +44,17 @@ Celsius.
 New_Prog=c(21, 11, 16,5,20, 7, 16) 
 Reg_Prog=c(15, 8, 19, 4, 16, 9, 11) 
 
-t.test(New_Prog, Reg_Prog, paired=T,conf.level = 0.9)
+t.test(New_Prog, Reg_Prog, paired=T,conf.level = 0.9, alternative ="greater")
 ```
 
     ## 
     ##  Paired t-test
     ## 
     ## data:  New_Prog and Reg_Prog
-    ## t = 1.5275, df = 6, p-value = 0.1775
-    ## alternative hypothesis: true mean difference is not equal to 0
+    ## t = 1.5275, df = 6, p-value = 0.08874
+    ## alternative hypothesis: true mean difference is greater than 0
     ## 90 percent confidence interval:
-    ##  -0.5442202  4.5442202
+    ##  0.1149172       Inf
     ## sample estimates:
     ## mean difference 
     ##               2
@@ -69,7 +69,7 @@ t.test(New_Prog, Reg_Prog, paired=T,conf.level = 0.9)
 
 **Conclusion:** We found significant statistical evidence at the level
 of $\alpha =0.10$ that the mean score of the new program is higher than
-that of the regualr program.
+that of the regular program.
 
 # Two sample t test
 
