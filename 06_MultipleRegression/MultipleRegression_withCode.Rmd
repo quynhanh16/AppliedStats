@@ -1,0 +1,193 @@
+---
+title: "Multiple Regression 1"
+output: rmarkdown::github_document
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*.
+
+```{r}
+library(Sleuth2)
+library(corrplot)
+library(car)
+library(olsrr)
+
+tumorData=case1102
+summary(tumorData)
+```
+
+# Checking multi-collinearity
+
+```{r}
+ratio=log(tumorData$Brain/tumorData$Liver)
+allNumericalData=data.frame(ratio,tumorData$Days, tumorData$Weight, tumorData$Loss, tumorData$Tumor)
+pairwise_corr= cor(allNumericalData)
+corrplot(pairwise_corr)
+```
+
+```{r}
+pairs(allNumericalData)
+```
+
+# Multiple Linear Regression
+
+```{r}
+allNumericalDataModel=lm(ratio~.,data=allNumericalData)
+summary(allNumericalDataModel)
+```
+
+-   The regression equation is $y= -33.73+2.27x_1+0.04x_2-0.05x_3+0.003x_4$ where y is the log of the ratio of brain tumor concentration and liver tumor concentration, $x_1$ is the number of days post inoculation, $x_2$ is the initial weight, $x_3$ is the weight loss, and $x_4$ is the tumor weight.
+
+-   Interpretation: a unit increase in the number of days post inoculation ($x_1$) with the other predictors (initial weight, weight loss, and tumor weight) held constant will produce an increase of 2.27 in the log ratio of brain tumor concentration and liver tumor concentration. The effect is significant with p-value as 0.004.
+
+-   Interpretation: a unit increase in the initial weight ($x_2$) with the other predictors (number of days post inoculation, weight loss, and tumor weight) held constant will produce an increase of 0.04 in the log ratio of brain tumor concentration and liver tumor concentration. The effect is significant with p-value as 0.004.
+
+-   Interpretation: a unit increase in the weight loss ($x_3$) with the other predictors (number of days post inoculation, initial weight, and tumor weight) held constant will produce a decrease of 0.05 in the log ratio of brain tumor concentration and liver tumor concentration.
+
+-   Interpretation: a unit increase in the tumor weight ($x_4$) with the other predictors (number of days post inoculation, initial weight, and weight loss) held constant will produce an increase of 0.003 in the log ratio of brain tumor concentration and liver tumor concentration.
+
+-   The F test shown here is to take if any of the predictors are useful in predicting the response.
+
+    -   $H_0$: $\beta_1=\beta_2=\beta_3=\beta_4=0$. This is equivalent to the null model ($y=\beta_0$).
+    -   F statistics is 4.719 with DF as 4 (p-1) and 29 (n-p)
+    -   p value is 0.005
+    -   Thus, we reject the null hypothesis and conclude that some of the predictors are useful.
+
+    ```{r}
+    vif(allNumericalDataModel)
+    mean(vif(allNumericalDataModel))
+    ```
+
+# Variable Selection
+
+```{r}
+ols_step_forward_p(allNumericalDataModel)
+```
+
+```{r}
+ols_step_backward_p(allNumericalDataModel)
+```
+
+```{r}
+ols_step_both_p(allNumericalDataModel)
+```
+
+-   The chosen model from all three methods is $y=-34.421+2.358x_1+0.039x_2$ where y is the log of the ratio of brain tumor concentration and liver tumor concentration, $x_1$ is the number of days post inoculation, $x_2$ is the initial weight.
+
+# Add Categorical Variable
+
+```{r}
+Model_Sex=lm(allNumericalData$ratio~tumorData$Days+tumorData$Weight+tumorData$Sex)
+summary(Model_Sex)
+Anova(Model_Sex)
+```
+
+-   The equation of the model is $y=-27.91+2.20x_1+0.02x_2+2.40$ for male rats and $y=-27.91+2.20x_1+0.02x_2$ for female rats. Here $y$, $x_1$ and $x_2$ have the same meaning as above equations.
+
+-   Interpretation: a unit increase in the number of days post inoculation ($x_1$) with the other predictors (initial weight and sex) held constant will produce an increase of 2.20 in the log ratio of brain tumor concentration and liver tumor concentration. The effect is significant with p-value as 0.002.
+
+-   Interpretation: a unit increase in the initial weight ($x_2$) with the other predictors (number of days post inoculation and sex) held constant will produce an increase of 0.02 in the log ratio of brain tumor concentration and liver tumor concentration.
+
+-   Interpretation: Given other predictors (number of days post inoculation and initial weight) held constant, a male rat will have an increase of 2.40 in the log ratio of brain tumor concentration and liver tumor concentration as compared to a female rat. The effect is significant with p-value as 0.007.
+
+-   We see that when we add the sex variable into the equation, the weight is not significant anymore. This can be explained that the sex and weight variables are related (male is usually heavier than female).
+
+-   The F test shown here is to take if any of the predictors are useful in predicting the response.
+
+    -   $H_0$: $\beta_1=\beta_2=\beta_3=0$. This is equivalent to the null model ($y=\beta_0$).
+    -   F statistics is 10.55 with DF as 3 (p-1) and 30 (n-p)
+    -   p value is 6.73 $\times 10^{-5}$
+    -   Thus, we reject the null hypothesis and conclude that some of the predictors are useful.
+
+```{r}
+contrasts(tumorData$Sex)
+```
+
+```{r}
+Model_Treat=lm(allNumericalData$ratio~tumorData$Days+tumorData$Weight+tumorData$Treat)
+summary(Model_Treat)
+Anova(Model_Treat)
+```
+
+-   The equation of the model is $y=-33.62+2.32x_1+0.04x_2-0.50$ for rats with normal saline (NS) treatment and $y=-33.62+2.32x_1+0.04x_2$ for rats with barrier disruption (BD) treatment (control group). Here $y$, $x_1$ and $x_2$ have the same meaning as above equations.
+
+-   Interpretation: a unit increase in the number of days post inoculation ($x_1$) with the other predictors (initial weight and treatment) held constant will produce an increase of 2.32 in the log ratio of brain tumor concentration and liver tumor concentration. The effect is significant with p-value as 0.003.
+
+-   Interpretation: a unit increase in the initial weight ($x_2$) with the other predictors (number of days post inoculation and treatment) held constant will produce an increase of 0.04 in the log ratio of brain tumor concentration and liver tumor concentration. The effect is significant with p-value as 0.003.
+
+-   Interpretation: Given other predictors (number of days post inoculation and initial weight) held constant, a rat going through NS treatment have a decrease of 0.5 in the log ratio of brain tumor concentration and liver tumor concentration as compared to a rat in the control group. However, there is not enough evidence to conclude that the effect is significant.
+
+-   The F test shown here is to take if any of the predictors are useful in predicting the response.
+
+    -   $H_0$: $\beta_1=\beta_2=\beta_3=0$. This is equivalent to the null model ($y=\beta_0$).
+    -   F statistics is 6.36 with DF as 3 (p-1) and 30 (n-p)
+    -   p value is 0.002\$
+    -   Thus, we reject the null hypothesis and conclude that some of the predictors are useful.
+
+```{r}
+contrasts(tumorData$Treat)
+```
+
+# Variable selection
+
+```{r}
+Model_Sex_Treat=lm(allNumericalData$ratio~tumorData$Days+tumorData$Weight+tumorData$Sex+tumorData$Treat)
+summary(Model_Sex_Treat)
+Anova(Model_Sex_Treat)
+
+```
+
+-   The equation of the model is $y=-26.92+2.15x_1+0.02x_2+2.43x_3-0.57x_4$. Here $y$, $x_1$, and $x_2$ have the same meaning as above equations. $x_3$ is the sex (0 as F and 1 as M), and $x_4$ denotes the treatment (0 as BD or control and 1 as NS).
+
+-   Interpretation: a unit increase in the number of days post inoculation ($x_1$) with the other predictors (initial weight, sex, and treatment) held constant will produce an increase of 2.15 in the log ratio of brain tumor concentration and liver tumor concentration. The effect is significant with p-value as 0.002.
+
+-   Interpretation: a unit increase in the initial weight ($x_2$) with the other predictors (number of days post inoculation,sex, and treatment) held constant will produce an increase of 0.02 in the log ratio of brain tumor concentration and liver tumor concentration.
+
+-   Interpretation: Given other predictors (number of days post inoculation, initial weight, and treatment) held constant, a male rat will have an increase of 2.43 in the log ratio of brain tumor concentration and liver tumor concentration as compared to a female rat. The effect is significant with p-value as 0.006.
+
+-   Interpretation: Given other predictors (number of days post inoculation, initial weight, and sex) held constant, a rat going through NS treatment have a decrease of 0.57 in the log ratio of brain tumor concentration and liver tumor concentration as compared to a rat in the control group. However, there is not enough evidence to conclude that the effect is significant.
+
+-   The F test shown here is to take if any of the predictors are useful in predicting the response.
+
+    -   $H_0$: $\beta_1=\beta_2=\beta_3=\beta_4=0$. This is equivalent to the null model ($y=\beta_0$).
+    -   F statistics is 8.161 with DF as 4 (p-1) and 29 (n-p)
+    -   p value is 0.0002
+    -   Thus, we reject the null hypothesis and conclude that some of the predictors are useful.
+
+```{r}
+ols_step_forward_p(Model_Sex_Treat)
+```
+
+```{r}
+ols_step_backward_p(Model_Sex_Treat)
+```
+
+```{r}
+ols_step_both_p(Model_Sex_Treat)
+```
+
+```{r}
+Model_chosen=lm(allNumericalData$ratio~tumorData$Days+tumorData$Sex)
+summary(Model_chosen)
+Anova(Model_chosen)
+```
+
+-   The equation of the model is $y=-22.59+2.04x_1+3.01x_3$. Here $y$ and $x_1$. $x_3$ is the sex (0 as F and 1 as M).
+
+-   Interpretation: a unit increase in the number of days post inoculation ($x_1$) with the other predictor (sex) held constant will produce an increase of 2.03 in the log ratio of brain tumor concentration and liver tumor concentration. The effect is significant with p-value as 0.003.
+
+-   Interpretation: Given other predictor (number of days post inoculation) held constant, a male rat will have an increase of 3.01 in the log ratio of brain tumor concentration and liver tumor concentration as compared to a female rat. The effect is significant with p-value as $9.51 \times 10^{-5}$.
+
+-   The F test shown here is to take if any of the predictors are useful in predicting the response.
+
+    -   $H_0$: $\beta_1=\beta_3=0$. This is equivalent to the null model ($y=\beta_0$).
+    -   F statistics is 14.8 with DF as 2 (p-1) and 31 (n-p)
+    -   p value is $3.07 \times 10^{-5}$
+    -   Thus, we reject the null hypothesis and conclude that some of the predictors are useful.
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
