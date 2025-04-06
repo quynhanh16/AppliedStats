@@ -1,0 +1,58 @@
+---
+title: "R Notebook"
+output: rmarkdown::github_document
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*.
+
+```{r}
+ANOVAdata=read.csv("ANOVAData.csv")
+tool=factor(ANOVAdata$tool)#alerting R that "tool" is a factor
+time=factor(ANOVAdata$time) #alerting R that "time" is a factor
+table(tool,time)#the model is balanced
+
+```
+
+```{r}
+interaction.plot(tool,time,ANOVAdata$diam) #gives the plot of means 
+interaction.plot(time,tool,ANOVAdata$diam) #gives the plot of means 
+
+```
+
+```{r}
+tool_time=aov(ANOVAdata$diam~tool+time+tool*time)#analyis of variance
+summary(tool_time)
+```
+
+```{r}
+TukeyHSD(tool_time,"tool") #multiple comparisons btwn the tool levels
+plot(TukeyHSD(tool_time, "tool", conf.level=.95), las=1)
+```
+
+```{r}
+TukeyHSD(tool_time,"time") #multiple comparisons btwn the time levels
+
+plot(TukeyHSD(tool_time, "time", conf.level=.95), las=1)
+```
+
+```{r}
+TukeyHSD(tool_time,"tool:time") #multiple comparisons for interaction 
+plot(TukeyHSD(tool_time, "tool:time", conf.level=.95), las=1)
+```
+
+```{r}
+lm_model=lm(ANOVAdata$diam~tool:time-1)
+summary(lm_model)
+```
+
+```{r}
+plot(lm_model)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
