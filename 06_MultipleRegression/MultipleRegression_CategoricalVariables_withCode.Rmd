@@ -1,0 +1,100 @@
+---
+title: "Multiple Regression 3"
+output: rmarkdown::github_document
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*.
+
+```{r}
+library(Sleuth2)
+library(corrplot)
+library(car)
+library(olsrr)
+
+tumorData=case1102
+summary(tumorData)
+```
+
+```{r}
+ratio=log(tumorData$Brain/tumorData$Liver)
+a=factor(tumorData$Time) # turn this into factor with three levels
+class(a)
+allData=data.frame(ratio,Time=a,Treat=tumorData$Treat,Days=tumorData$Days, Sex=tumorData$Sex, Weight=tumorData$Weight, Loss=tumorData$Loss, Tumor=tumorData$Tumor)
+
+```
+
+# Multiple Linear Regression with Categorical Variable
+
+```{r}
+Model_Sex=lm(ratio~Days+Sex, data=allData)
+summary(Model_Sex)
+Anova(Model_Sex)
+```
+
+-   The equation of the model is $y=-22.59+2.04x_1+3.01x_3$. Here $y$ is the log of the ratio of brain tumor concentration and liver tumor concentration, $x_1$ is the number of days post inoculation, and $x_3$ is the sex (0 as F and 1 as M).
+
+-   Interpretation: a unit increase in the number of days post inoculation ($x_1$) with the other predictor (sex) held constant will produce an increase of 2.03 in the log ratio of brain tumor concentration and liver tumor concentration. The effect is significant with p-value as 0.003.
+
+-   Interpretation: Given other predictor (number of days post inoculation) held constant, a male rat will have an increase of 3.01 in the log ratio of brain tumor concentration and liver tumor concentration as compared to a female rat. The effect is significant with p-value as $9.51 \times 10^{-5}$.
+
+-   The F test shown here is to take if any of the predictors are useful in predicting the response.
+
+    -   $H_0$: $\beta_1=\beta_3=0$. This is equivalent to the null model ($y=\beta_0$).
+    -   F statistics is 14.8 with DF as 2 (p-1) and 31 (n-p)
+    -   p value is $3.07 \times 10^{-5}$
+    -   Thus, we reject the null hypothesis and conclude that some of the predictors are useful.
+
+```{r}
+contrasts(tumorData$Sex)
+```
+
+```{r}
+plot(allData$Days, allData$ratio, pch=as.numeric(allData$Sex), xlab='Days', ylab='ratio',main='Regression Line by Sex')
+abline(Model_Sex$coefficients[1], Model_Sex$coefficients[2])# female
+abline(Model_Sex$coefficients[1]+ Model_Sex$coefficients[3], Model_Sex$coefficients[2],col='red')#male
+
+```
+
+```{r}
+model.matrix(Model_Sex)
+```
+
+```{r}
+Model_Treat_Sex=lm(ratio~Days+Sex+Sex:Treat, data=allData)
+summary(Model_Treat_Sex)
+Anova(Model_Treat_Sex)
+contrasts(tumorData$Treat)
+model.matrix(Model_Treat_Sex)
+```
+
+```{r}
+# 3 level factor 
+
+Model_Time=lm(ratio~Time+Days, data=allData)
+summary(Model_Time)
+```
+
+```{r}
+contrasts(allData$Time)
+model.matrix(Model_Time)
+```
+
+```{r}
+Model_Time
+```
+
+```{r}
+plot(allData$Days, allData$ratio, pch=as.numeric(allData$Time), xlab='Days', ylab='ratio',main='Regression Line by Time')
+abline(Model_Time$coefficients[1], Model_Time$coefficients[5])# Time 0.5
+abline(Model_Time$coefficients[1]+Model_Time$coefficients[2], Model_Time$coefficients[5],col='red') # Time 3
+abline(Model_Time$coefficients[1]+Model_Time$coefficients[3], Model_Time$coefficients[5],col='blue') # Time 24
+abline(Model_Time$coefficients[1]+Model_Time$coefficients[4], Model_Time$coefficients[5],col='green') # Time 3
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

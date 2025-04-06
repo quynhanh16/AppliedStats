@@ -1,0 +1,173 @@
+---
+title: "Multiple Regression 2"
+output: rmarkdown::github_document
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*.
+
+```{r}
+library(Sleuth2)
+library(corrplot)
+library(car)
+library(olsrr)
+
+turtleData=ex1220
+summary(turtleData)
+```
+
+```{r}
+pairwise_corr= cor(turtleData[,2:8])
+corrplot(pairwise_corr)
+pairs(turtleData[,2:8])
+```
+
+# Exhausted search
+
+```{r}
+library(leaps)
+b = regsubsets(Native~Area+Elev+DistNear+DistSC+AreaNear,data=turtleData)
+rs = summary(b)
+rs$which
+```
+
+```{r}
+n=30
+p=6
+x_count=I(2:p)
+AIC = n*log(rs$rss/n) + (2:p)*2
+plot(x_count,AIC, ylab="AIC", xlab="Number of Parameters")
+```
+
+```{r}
+n=30
+p=6
+x_count=I(2:p)
+BIC = rs$bic
+plot(x_count,BIC, ylab="BIC", xlab="Number of Parameters")
+
+```
+
+```{r}
+n=30
+p=6
+x_count=I(2:p)
+R2_a = rs$adjr2
+plot(x_count,R2_a, ylab="Adjusted R2", xlab="Number of Parameters")
+```
+
+```{r}
+n=30
+p=6
+x_count=I(2:p)
+Cp = rs$cp
+plot(x_count,Cp, ylab="Cp Statistics", xlab="Number of Parameters")
+abline(0,1)
+```
+
+# Cheaper alternative (used when there are many possible predictors)
+
+It bears some comparison to the step wise methods, but only in the method of search — there is no hypothesis testing.
+
+```{r}
+allNumericalDataModel=lm(Native~Area+Elev+DistNear+DistSC+AreaNear,data=turtleData)
+step(allNumericalDataModel,direction='forward')
+```
+
+```{r}
+step(allNumericalDataModel,direction='backward')
+```
+
+```{r}
+step(allNumericalDataModel,direction='both')
+```
+
+# Sensitivity to outliers and leverage points
+
+```{r}
+plot(allNumericalDataModel)
+```
+
+```{r}
+b_16<-regsubsets(Native~Area+Elev+DistNear+DistSC+AreaNear,data=turtleData, subset=(Island!="Isabela"))
+rs_16 = summary(b_16)
+rs_16$which
+n=29
+p=6
+x_count=I(2:p)
+AIC = n*log(rs_16$rss/n) + (2:p)*2
+plot(x_count,AIC, ylab="AIC", xlab="Number of Parameters")
+BIC = rs_16$bic
+plot(x_count,BIC, ylab="BIC", xlab="Number of Parameters")
+R2_a = rs_16$adjr2
+plot(x_count,R2_a, ylab="Adjusted R2", xlab="Number of Parameters")
+Cp = rs_16$cp
+plot(x_count,Cp, ylab="Cp Statistics", xlab="Number of Parameters")
+abline(0,1)
+```
+
+```{r}
+h =lm.influence(allNumericalDataModel)$hat
+names(h) =turtleData$Island
+rev(sort(h))
+```
+
+```{r}
+b_12<-regsubsets(Native~Area+Elev+DistNear+DistSC+AreaNear,data=turtleData, subset=(Island!="Fernandina"))
+rs_12 = summary(b_12)
+rs_12$which
+n=29
+p=6
+x_count=I(2:p)
+AIC = n*log(rs_12$rss/n) + (2:p)*2
+plot(x_count,AIC, ylab="AIC", xlab="Number of Parameters")
+BIC = rs_12$bic
+plot(x_count,BIC, ylab="BIC", xlab="Number of Parameters")
+R2_a = rs_12$adjr2
+plot(x_count,R2_a, ylab="Adjusted R2", xlab="Number of Parameters")
+Cp = rs_12$cp
+plot(x_count,Cp, ylab="Cp Statistics", xlab="Number of Parameters")
+abline(0,1)
+```
+
+# Partial plots and effect plots
+
+```{r}
+allNumericalDataModel
+
+Model_Elev=lm(Native~Elev,data=turtleData)
+Model_Elev
+```
+
+```{r}
+plot(turtleData$Elev, turtleData$Native, xlab='Elevation',ylab="Native Species",main='Effect Plot')
+abline(Model_Elev) #simple regression model
+
+b=colMeans(turtleData[,2:8])
+x=data.frame(Intercept=1, Area=b[3], Elev= turtleData$Elev, DistNear=b[5], DistSC= b[6], AreaNear=b[7])
+p =predict(allNumericalDataModel, x)
+i=order(turtleData$Elev)
+#lines(turtleData$Elev[i], p[i], lty=2)
+lines(turtleData$Elev, p, col='red') #multiple regression model
+```
+
+```{r}
+# partial residual plot
+termplot(allNumericalDataModel, partial.resid=TRUE, terms=2)
+
+```
+
+```{r}
+# partial regression plot
+d = residuals(lm(Native ~  Area + DistNear + DistSC+AreaNear,turtleData))
+m = residuals(lm(Elev ~ Area + DistNear + DistSC+AreaNear,turtleData))
+plot(m,d,xlab="Elevation",ylab="Native species residuals")
+abline(0,allNumericalDataModel$coefficient[3])
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
